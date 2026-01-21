@@ -1,4 +1,4 @@
-export async function handler(event) {
+exports.handler = async function handler(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
@@ -10,7 +10,7 @@ export async function handler(event) {
     if (!apiKey) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }),
+        body: JSON.stringify({ error: "Missing OPENAI_API_KEY (Netlify env var not set)." }),
       };
     }
 
@@ -20,10 +20,10 @@ export async function handler(event) {
 
     const systemPrompt = `
 You are Islam AI, a respectful Islamic study assistant.
-- Do not give definitive fatwa.
-- Encourage consulting qualified scholars when rulings are required.
-- Only answer using provided sources.
-- Add citation markers like [1], [2].
+- Do NOT give definitive fatwa. Encourage consulting qualified scholars for rulings.
+- If sources are insufficient, say what you can generally and suggest what to verify.
+- Keep the tone calm, kind, and clear.
+- Add citation markers like [1], [2] when sources are provided.
 `.trim();
 
     const sourcesText = citations.length
@@ -37,11 +37,11 @@ You are Islam AI, a respectful Islamic study assistant.
       ...messages,
     ];
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model,
@@ -50,17 +50,34 @@ You are Islam AI, a respectful Islamic study assistant.
       }),
     });
 
-    const data = await response.json();
-    const answer = data.choices?.[0]?.message?.content || "";
+    const rawText = await resp.text();
+
+    // If OpenAI failed, return the real error to the frontend
+    if (!resp.ok) {
+      return {
+        statusCode: resp.status,
+        body: JSON.stringify({ error: rawText }),
+      };
+    }
+
+    const data = JSON.parse(rawText);
+    const answer = data?.choices?.[0]?.message?.content?.trim();
+
+    if (!answer) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: "OpenAI returned no answer (no choices/message). Raw: " + rawText.slice(0, 500),
+        }),
+      };
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify({ answer }),
     };
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Server error" }) };
   }
-}
+};
+
