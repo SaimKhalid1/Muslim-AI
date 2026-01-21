@@ -165,15 +165,37 @@ export function Chat() {
     setBusy(true);
 
     try {
+      // 1) Use local RAG to get citations (grounding)
       const data = generateLocalReply({
         mode,
-        messages: nextMessages.map(m => ({ role: m.role, content: m.content }))
+        messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
       });
 
-      const assistantMsg: Msg = { id: safeId("a"), role: "assistant", content: data.answer, createdAt: formatNow() };
+      const localCitations = data.citations || [];
+      setCitations(localCitations);
+
+      // 2) Ask the real AI (server-side) using Netlify Function
+      const res = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
+          citations: localCitations,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "AI request failed");
+
+      const assistantMsg: Msg = {
+        id: safeId("a"),
+        role: "assistant",
+        content: json.answer || "No answer returned.",
+        createdAt: formatNow(),
+      };
+
       const finalMessages = [...nextMessages, assistantMsg];
       setMessages(finalMessages);
-      setCitations(data.citations || []);
       persistChat(finalMessages, mode);
     } catch (e: any) {
       const assistantMsg: Msg = {
