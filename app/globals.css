@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Theme tokens (RGB triplets so we can use rgb(var(--token))).
+  Light = cream/white + gold + emerald accents.
+  Dark  = deep night + moonlit gold accents.
+*/
+:root {
+  --bg: 255 252 245;          /* warm cream */
+  --fg: 17 24 39;             /* slate-900 */
+  --card: 255 255 255;        /* white */
+  --card2: 248 250 252;       /* soft gray */
+  --muted: 55 65 81;          /* slate-700 */
+  --border: 229 231 235;      /* gray-200 */
+
+  --gold: 212 175 55;         /* #D4AF37 */
+  --gold2: 245 158 11;        /* amber */
+  --emerald: 16 185 129;      /* emerald */
+  --emerald2: 5 150 105;      /* deeper */
+  --sky: 56 189 248;
+  --rose: 244 63 94;
+
+  --heroGlow: 212 175 55;     /* gold */
+}
+
+/* Night mode */
+[data-theme="dark"] {
+  --bg: 2 6 23;               /* slate-950 */
+  --fg: 229 231 235;          /* gray-200 */
+  --card: 10 15 35;           /* deep indigo */
+  --card2: 7 11 24;           /* even deeper */
+  --muted: 156 163 175;       /* gray-400 */
+  --border: 30 41 59;         /* slate-800 */
+
+  --gold: 255 215 128;        /* moonlit gold */
+  --gold2: 245 158 11;
+  --emerald: 52 211 153;
+  --emerald2: 16 185 129;
+  --heroGlow: 56 189 248;     /* soft sky glow */
+}
+
+html, body { height: 100%; }
+
+body {
+  color: rgb(var(--fg));
+  background: rgb(var(--bg));
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+}
+
+/* App background (soft spiritual gradients) */
+.app-bg {
+  background:
+    radial-gradient(900px circle at 15% 20%, rgb(var(--heroGlow) / 0.18), transparent 45%),
+    radial-gradient(900px circle at 75% 10%, rgb(var(--emerald) / 0.12), transparent 48%),
+    radial-gradient(800px circle at 55% 85%, rgb(var(--rose) / 0.10), transparent 52%),
+    linear-gradient(180deg, rgb(var(--bg) / 1), rgb(var(--bg) / 1));
+}
+
+/* “Spiritual” borders */
+.spiritual-border {
+  border: 2px solid rgb(var(--gold) / 0.75);
+  box-shadow: 0 0 0 1px rgb(var(--gold) / 0.15) inset;
+}
+
+.spiritual-border-emerald {
+  border: 2px solid rgb(var(--emerald) / 0.70);
+  box-shadow: 0 0 0 1px rgb(var(--emerald) / 0.12) inset;
+}
+
+.spiritual-border-sky {
+  border: 2px solid rgb(var(--sky) / 0.55);
+  box-shadow: 0 0 0 1px rgb(var(--sky) / 0.10) inset;
+}
+
+.spiritual-border-rose {
+  border: 2px solid rgb(var(--rose) / 0.55);
+  box-shadow: 0 0 0 1px rgb(var(--rose) / 0.10) inset;
+}
+
+/*
+  Theme-safe buttons.
+  Why: Tailwind's arbitrary value classes using CSS variables can sometimes be missed in production builds,
+  which made "Generate" and "Open Chat" look invisible in night mode.
+  These plain CSS classes are always present.
+*/
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.9rem;
+  padding: 0.55rem 1rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.1rem;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease, color 120ms ease, border-color 120ms ease;
+  user-select: none;
+}
+
+.btn-base:active { transform: scale(0.99); }
+.btn-base:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  color: rgb(2 6 23); /* always readable on gold gradient */
+  border: 2px solid rgb(var(--gold) / 0.65);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  background: linear-gradient(90deg,
+    rgb(var(--gold) / 1),
+    rgb(var(--emerald) / 0.95),
+    rgb(var(--gold2) / 0.95)
+  );
+}
+
+.btn-primary:hover { opacity: 0.95; }
+
+.btn-outline {
+  color: rgb(var(--fg));
+  background: rgb(var(--card) / 1);
+  border: 2px solid rgb(var(--gold) / 0.55);
+}
+
+.btn-outline:hover { background: rgb(var(--card2) / 1); }
+
+.btn-ghost {
+  color: rgb(var(--fg));
+  background: transparent;
+  border: 2px solid transparent;
+}
+
+.btn-ghost:hover { background: rgb(var(--card2) / 1); }
+
+/* Daily Motivation inner board */
+.motivation-board {
+  border: 2px solid rgb(var(--gold) / 0.75);
+  box-shadow: 0 0 0 1px rgb(var(--gold) / 0.15) inset;
+}
