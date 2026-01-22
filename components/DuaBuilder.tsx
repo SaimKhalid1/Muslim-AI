@@ -251,6 +251,7 @@ export function DuaBuilder() {
   const [whoFor, setWhoFor] = useState("");
   const [details, setDetails] = useState("");
   const [dua, setDua] = useState<Dua | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const selectedLabel = useMemo(() => CATEGORIES.find(c => c.id === categoryId)?.label || "Guidance", [categoryId]);
 
@@ -320,10 +321,43 @@ export function DuaBuilder() {
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-[rgb(var(--muted))]">Your dua will appear in Arabic, transliteration, and English.</div>
           <Button
-            onClick={() => setDua(buildDua({ name, whoFor, details, categoryId }))}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const res = await fetch("/.netlify/functions/dua", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    userName: name,
+                    target: whoFor,
+                    category: categoryId,
+                    details: details,
+                    length: "medium",
+                  }),
+                });
+
+                const json = await res.json();
+                if (!res.ok) throw new Error(json?.error || "Failed to generate dua");
+
+                setDua({
+                  arabic: json.arabic,
+                  transliteration: json.transliteration,
+                  english: json.english,
+                });
+              } catch (e: any) {
+                setDua({
+                  arabic: "",
+                  transliteration: "",
+                  english: `Error: ${e?.message || "Unknown error"}`,
+                });
+              } finally {
+                setBusy(false);
+              }
+            }}
           >
             Generate
           </Button>
+
         </div>
       </div>
 
