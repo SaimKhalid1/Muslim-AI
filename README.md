@@ -86,6 +86,7 @@ Each entry can include:
 Title
 Snippet
 Source link
+```
 
 🧪 Design Decisions & Tradeoffs
 Arabic generation is server-side only to prevent incorrect language output
